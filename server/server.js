@@ -7,7 +7,12 @@ app.use(express.static('../client'));
 
 io.on('connection', function(socket){
   console.log('a user connected');
+  socket.on('position', function(pos){
+    console.log(pos);
+  });
 });
+
+
 
 http.listen(1337, function(){
   console.log('Listening on 1337');
