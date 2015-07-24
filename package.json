@@ -1,0 +1,25 @@
+{
+  "name": "assassin-king",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "cd node_modules/melonJS && npm i && gr release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forty-eight/assassin-king.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/forty-eight/assassin-king/issues"
+  },
+  "scripts": {
+    "release": "grunt release",
+    "test": "grunt test"
+  },
+  "homepage": "https://github.com/forty-eight/assassin-king#readme",
+  "dependencies": {
+  }
+}
