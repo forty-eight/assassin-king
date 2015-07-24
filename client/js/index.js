@@ -1,7 +1,7 @@
 var socket = io();
 
-var height = document.body.clientHeight;
-var width = document.body.clientWidth;
+var maxY = document.body.clientHeight;
+var maxX = document.body.clientWidth;
 
 var velo = 5;
 
@@ -38,9 +38,13 @@ function moveSprite(){
   var dx = (activeKeys[39] || activeKeys[68]) - (activeKeys[37] || activeKeys[65]);
   var dy = (activeKeys[40] || activeKeys[83]) - (activeKeys[38] || activeKeys[87]);
 
-  sprite.x += dx*velo;
-  sprite.y += dy*velo;
+  sprite.x = (sprite.x + dx*velo)%maxX;
+  sprite.y = (sprite.y + dy*velo);
 
+  if(sprite.x < 0) sprite.x = maxX + sprite.x;
+  if(sprite.y < 0) sprite.y = 0;
+  if(sprite.y > maxY - sprite.height) sprite.y = maxY - sprite.height;
+console.log(sprite.x, sprite.y);
   sprite.node.style.transform = 'translate(' + sprite.x + 'px,' + sprite.y + 'px)';
 
   window.requestAnimationFrame(moveSprite);
