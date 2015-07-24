@@ -1,33 +1,18 @@
-body {
-    background-color: #000;
-    color: #fff;
-
-    /* Allow mouse dragging. */
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    -webkit-user-select: none;
-    user-select: none;
-	
-	/* disable touch panning/zooming */
-	-ms-touch-action: none;
-	touch-action: none;
-
-    /* Allow canvas to hit the edges of the browser viewport. */
-    margin: 0;
+html, body, #screen{
+  height:100%;
+  width:100%;
+  background:#233423;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-#screen canvas {
-    margin: auto;
-
-    /* Hide the gap for font descenders. */
-    display: block;
-	
-	/* disable scaling interpolation */
-	image-rendering: optimizeSpeed;
-	image-rendering: -moz-crisp-edges;
-	image-rendering: -o-crisp-edges;
-	image-rendering: -webkit-optimize-contrast;
-	image-rendering: optimize-contrast;
-	-ms-interpolation-mode: nearest-neighbor;
+#player{
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: #dbeaf5;
 }
