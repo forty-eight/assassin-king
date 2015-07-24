@@ -1,16 +1,14 @@
-var http = require('http');
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-var server = http.createServer(function(req, res){
-  res.end('GOT IT');
-});
+app.use(express.static('../client'));
 
 io.on('connection', function(socket){
   console.log('a user connected');
 });
 
-server.listen(1337, function(){
+http.listen(1337, function(){
   console.log('Listening on 1337');
 });
-
-
