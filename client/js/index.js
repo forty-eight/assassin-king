@@ -1,5 +1,4 @@
 /* globals io, window, document*/
-var socket = io();
 
 var maxY = document.body.clientHeight;
 var maxX = document.body.clientWidth;
@@ -24,8 +23,8 @@ var sprite = {
 };
 
 addSprite(sprite);
-socket.on('sprite', addSprite);
-socket.on('direction-change', updateDirection);
+//socket.on('sprite', addSprite);
+//socket.on('direction-change', updateDirection);
 
 
 var keyDownListener = eventFactory(1);
@@ -74,7 +73,7 @@ function eventFactory(isKeyDown){
 function setDirection(){
   sprite.dx = (activeKeys[39] || activeKeys[68]) - (activeKeys[37] || activeKeys[65]);
   sprite.dy = (activeKeys[40] || activeKeys[83]) - (activeKeys[38] || activeKeys[87]);
-  socket.emit('direction-change', sprite);
+//  socket.emit('direction-change', sprite);
 }
 
 function tick(){
@@ -100,3 +99,114 @@ function setCoords(sprite){
   sprite.node.style.transform = 'translate(' + sprite.x + 'px,' + sprite.y + 'px)';
 }
 
+
+/*globals io RTCPeerConnection*/
+
+
+var socket = io('http://localhost');
+var connections = {};
+var channelArr = [];
+
+
+//new peer makes connections for every other peer
+socket.on('initialConnection', makeConnections);
+
+socket.on('newPeer', makeRecipricolConnection);
+
+//hook in to connections created by a peer
+socket.on('iceCandidate', setIceCandidate);
+socket.on('offer', setRemoteDescriptionFromOffer);
+socket.on('answer', setRemoteDescriptionFromAnswer);
+
+
+function makeConnections(data) {
+  var peers = data.peers;
+
+  peers.forEach(function(peer, i){
+    var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
+    var channel = connection.createDataChannel('channel' + i, {reliable: false});
+    var id = peers[i];
+
+    connections[id] = connection;
+    channelArr.push(channel);
+
+    channel.onmessage = handleMessage;
+    connection.onicecandidate = iceCandidateEmitter(id);
+    connection.createOffer(localDescriptionFromOfferSetter(id), handleError);
+  });
+
+}
+
+
+function makeRecipricolConnection(id){
+  var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
+  connections[id] = {connection: connection, channel: null};
+
+  connection.onicecandidate = iceCandidateEmitter(id);
+
+  connection.ondatachannel = function(event){
+    channelArr.push(event.channel);
+    event.channel.onmessage = handleMessage;
+  };
+}
+
+
+function localDescriptionFromOfferSetter(id){
+  return function(desc){
+    connections[id].setLocalDescription(desc);
+    socket.emit('offer', {id: id, description: desc});
+  }
+}
+
+
+function setRemoteDescriptionFromOffer(event){
+  var connection = connections[event.id];
+  connection.setRemoteDescription(event.description);
+  connection.createAnswer(localDescriptionFromAnswerSetter(event.id), handleError);
+}
+
+
+function localDescriptionFromAnswerSetter(id){
+  return function(desc){
+    connections[id].setLocalDescription(desc);
+    socket.emit('answer', {id: id, description: desc});
+  }
+}
+
+
+function setRemoteDescriptionFromAnswer(event){
+  connections[event.id].setRemoteDescription(event.description);
+}
+
+
+//emit ice candidate to peer
+function iceCandidateEmitter(id){
+  return function(event){
+    if(event.candidate) {
+      socket.emit('iceCandidate', {id: id, candidate: event.candidate});
+    }else{
+      throw new Error('No Ice Candidate for ' + JSON.stringify(event));
+    }
+  }
+}
+
+
+//Apply ice candidate after emitted from peer
+function setIceCandidate(event){
+  connections[event.id].addIceCandidate(event.candidate);
+}
+
+
+function handleMessage(event) {
+  console.log(event);
+}
+
+
+function handleError(err){console.log(err)}
+
+
+function sendMessage(data){
+ for(var i=0; i<channelArr.length; i++){
+   channelArr[i].send(data);
+ }
+}
