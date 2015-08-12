@@ -40,9 +40,9 @@ tick();
 
 function addSprite(sprite){
   sprite.node = document.createElement('div');
-  sprite.className = 'sprite';
+  sprite.node.className = 'sprite';
   setCoords(sprite);
-  screen.appendChild(sprite);
+  screen.appendChild(sprite.node);
 
   sprites.push(sprite);
   spriteObj[sprite.key] = sprite;
