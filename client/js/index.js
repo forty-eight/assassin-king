@@ -103,7 +103,7 @@ function setCoords(sprite){
 /*globals io RTCPeerConnection*/
 
 
-var socket = io('http://localhost');
+var socket = io('http://localhost:1337');
 var connections = {};
 var channelArr = [];
 
@@ -119,13 +119,10 @@ socket.on('offer', setRemoteDescriptionFromOffer);
 socket.on('answer', setRemoteDescriptionFromAnswer);
 
 
-function makeConnections(data) {
-  var peers = data.peers;
-
-  peers.forEach(function(peer, i){
+function makeConnections(peerIds) {
+  peerIds.forEach(function(id, i){
     var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
     var channel = connection.createDataChannel('channel' + i, {reliable: false});
-    var id = peers[i];
 
     connections[id] = connection;
     channelArr.push(channel);
