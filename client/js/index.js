@@ -100,12 +100,25 @@ function setCoords(sprite){
 }
 
 
-/*globals io RTCPeerConnection*/
+/*globals io RTCPeerConnection RTCSessionDescription RTCIceCandidate webrtcDetectedBrowser*/
+
 
 
 var socket = io('http://localhost:1337');
 var connections = {};
 var channelArr = [];
+
+var pc_config = webrtcDetectedBrowser === 'firefox'
+  ? {'iceServers': [{'url': 'stun:23.21.150.121'}]}
+  : {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]}
+  ;
+
+var pc_constraints = {
+  'optional': [
+    {'DtlsSrtpKeyAgreement': true},
+    {'RtpDataChannels': true}
+  ]
+};
 
 
 //new peer makes connections for every other peer
@@ -121,8 +134,9 @@ socket.on('answer', setRemoteDescriptionFromAnswer);
 
 
 function makeConnections(peerIds) {
+  console.log('peerIds', peerIds);
   peerIds.forEach(function(id, i){
-    var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
+    var connection = new RTCPeerConnection(pc_config, pc_constraints);
     var channel = connection.createDataChannel('channel' + i, {reliable: false});
 
     connections[id] = {connection: connection, channel: channel};
@@ -137,9 +151,10 @@ function makeConnections(peerIds) {
 
 
 function makeRecipricolConnection(id){
-  var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
-  connections[id] = {connection: connection, channel: null};
+  console.log("connecting reciprically to: ", id);
+  var connection = new RTCPeerConnection(pc_config, pc_constraints);
 
+  connections[id] = {connection: connection, channel: null};
   connection.onicecandidate = iceCandidateEmitter(id);
 
   connection.ondatachannel = function(event){
@@ -161,9 +176,10 @@ function localDescriptionFromOfferSetter(id){
 
 
 function setRemoteDescriptionFromOffer(event){
+  console.log(connections, event);
   var connection = connections[event.id].connection;
   console.log('setting remote desc from offer', event.description);
-  connection.setRemoteDescription(event.description);
+  connection.setRemoteDescription(new RTCSessionDescription(event.description));
   connection.createAnswer(localDescriptionFromAnswerSetter(event.id), handleError);
 }
 
@@ -179,7 +195,7 @@ function localDescriptionFromAnswerSetter(id){
 
 function setRemoteDescriptionFromAnswer(event){
   console.log('setting remote desc from answer', event.description);
-  connections[event.id].connection.setRemoteDescription(event.description);
+  connections[event.id].connection.setRemoteDescription(new RTCSessionDescription(event.description));
 }
 
 
@@ -199,7 +215,12 @@ function iceCandidateEmitter(id){
 //Apply ice candidate after emitted from peer
 function setIceCandidate(event){
   console.log('setting ice candidate', event.candidate);
-  connections[event.id].connection.addIceCandidate(event.candidate);
+  var candidate = new RTCIceCandidate({
+    sdpMLineIndex: event.candidate.label,
+    candidate: event.candidate.candidate
+  });
+  if(connections[event.id]) connections[event.id].connection.addIceCandidate(candidate);
+  else console.log('no connection yet');
 }
 
 function dropPeer(id){
