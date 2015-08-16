@@ -13,19 +13,34 @@ io.on('connection', function(socket){
   var id = crypto.pseudoRandomBytes(5).toString('hex');
   console.log('a user connected with id: %s', id);
 
-  socket.broadcast.emit('newPeer', id);
+  socket.broadcast.emit('connectedPeer', id);
   socket.emit('initialConnection', socketIds);
 
   socket.on('offer', function(event){
+    console.log('offer', event);
     sockets[event.id].emit('offer', {id: id, description: event.description});
   });
 
   socket.on('answer', function(event){
+    console.log('answer', event);
     sockets[event.id].emit('answer', {id: id, description: event.description});
   });
 
   socket.on('iceCandidate', function(event){
+    console.log('iceCandidate', event);
     sockets[event.id].emit('iceCandidate', {id: id, candidate: event.candidate});
+  });
+
+  socket.on('disconnect', function(){
+    console.log('disconnect', id);
+    socket.broadcast.emit('disconnectedPeer', id);
+    sockets[id] = null;
+    for(var i=0; i<socketIds.length; i++){
+      if(id === socketIds[i]){
+        socketIds.splice(i, 1);
+        break;
+      }
+    }
   });
 
   sockets[id] = socket;

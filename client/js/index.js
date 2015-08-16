@@ -2,7 +2,7 @@
 
 var maxY = document.body.clientHeight;
 var maxX = document.body.clientWidth;
-var screen = document.getElementById('screen');
+var page = document.getElementById('page');
 
 var activeKeys = {37: 0, 38: 0, 39: 0, 40: 0, 65: 0, 68: 0, 83: 0, 87: 0};
 var movementKeys = {37: 1, 38: 1, 39: 1, 40: 1, 65: 1, 68: 1, 83: 1, 87: 1}
@@ -41,7 +41,7 @@ function addSprite(sprite){
   sprite.node = document.createElement('div');
   sprite.node.className = 'sprite';
   setCoords(sprite);
-  screen.appendChild(sprite.node);
+  page.appendChild(sprite.node);
 
   sprites.push(sprite);
   spriteObj[sprite.key] = sprite;
@@ -111,7 +111,8 @@ var channelArr = [];
 //new peer makes connections for every other peer
 socket.on('initialConnection', makeConnections);
 
-socket.on('newPeer', makeRecipricolConnection);
+socket.on('connectedPeer', makeRecipricolConnection);
+socket.on('disconnectedPeer', dropPeer);
 
 //hook in to connections created by a peer
 socket.on('iceCandidate', setIceCandidate);
@@ -124,7 +125,7 @@ function makeConnections(peerIds) {
     var connection = new RTCPeerConnection(null, {optional: [{RtpDataChannels: true}]});
     var channel = connection.createDataChannel('channel' + i, {reliable: false});
 
-    connections[id] = connection;
+    connections[id] = {connection: connection, channel: channel};
     channelArr.push(channel);
 
     channel.onmessage = handleMessage;
@@ -142,6 +143,8 @@ function makeRecipricolConnection(id){
   connection.onicecandidate = iceCandidateEmitter(id);
 
   connection.ondatachannel = function(event){
+    console.log('GOT DATA CHANNEL', event);
+    connections[id].channel = event.channel;
     channelArr.push(event.channel);
     event.channel.onmessage = handleMessage;
   };
@@ -150,14 +153,16 @@ function makeRecipricolConnection(id){
 
 function localDescriptionFromOfferSetter(id){
   return function(desc){
-    connections[id].setLocalDescription(desc);
+    console.log('setting local desc from offer', desc);
+    connections[id].connection.setLocalDescription(desc);
     socket.emit('offer', {id: id, description: desc});
   }
 }
 
 
 function setRemoteDescriptionFromOffer(event){
-  var connection = connections[event.id];
+  var connection = connections[event.id].connection;
+  console.log('setting remote desc from offer', event.description);
   connection.setRemoteDescription(event.description);
   connection.createAnswer(localDescriptionFromAnswerSetter(event.id), handleError);
 }
@@ -165,24 +170,27 @@ function setRemoteDescriptionFromOffer(event){
 
 function localDescriptionFromAnswerSetter(id){
   return function(desc){
-    connections[id].setLocalDescription(desc);
+    console.log('setting local desc from answer', desc);
+    connections[id].connection.setLocalDescription(desc);
     socket.emit('answer', {id: id, description: desc});
   }
 }
 
 
 function setRemoteDescriptionFromAnswer(event){
-  connections[event.id].setRemoteDescription(event.description);
+  console.log('setting remote desc from answer', event.description);
+  connections[event.id].connection.setRemoteDescription(event.description);
 }
 
 
 //emit ice candidate to peer
 function iceCandidateEmitter(id){
   return function(event){
+    console.log(event);
     if(event.candidate) {
       socket.emit('iceCandidate', {id: id, candidate: event.candidate});
     }else{
-      throw new Error('No Ice Candidate for ' + JSON.stringify(event));
+      console.log('No Ice Candidate for ' + JSON.stringify(event));
     }
   }
 }
@@ -190,9 +198,27 @@ function iceCandidateEmitter(id){
 
 //Apply ice candidate after emitted from peer
 function setIceCandidate(event){
-  connections[event.id].addIceCandidate(event.candidate);
+  console.log('setting ice candidate', event.candidate);
+  connections[event.id].connection.addIceCandidate(event.candidate);
 }
 
+function dropPeer(id){
+  console.log('dropping', id);
+  var connection = connections[id].connection
+  var channel = connections[id].channel;
+
+  connection.close();
+  if(channel) channel.close();
+
+  for(var i=0; i<channelArr.length; i++){
+    if(channelArr[i] === channel){
+      channelArr.splice(i, 1);
+      break;
+    }
+  }
+
+  connections[id] = null;
+}
 
 function handleMessage(event) {
   console.log(event);
