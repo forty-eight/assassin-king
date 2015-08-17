@@ -3,7 +3,6 @@ var movement = require('./movement');
 var socket = io('http://localhost:1337');
 var connections = {};
 var channelArr = [];
-var localId = null;
 
 var pc_config = webrtcDetectedBrowser === 'firefox'
   ? {'iceServers': [{'url': 'stun:23.21.150.121'}]}
@@ -144,7 +143,8 @@ function dropPeer(id){
   connections[id] = null;
 }
 
-function handleMessage(event) {
+
+function handleMessage(event){
   console.log('Got %s from %s.', event.data, event.target.label);
 }
 
@@ -154,7 +154,7 @@ function handleError(err){console.log(err)}
 
 function sendMessage(data){
  for(var i=0; i<channelArr.length; i++){
-   channelArr[i].send(data);
+   channelArr[i].send(JSON.stringify(data));
  }
 }
 

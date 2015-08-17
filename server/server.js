@@ -14,7 +14,7 @@ io.on('connection', function(socket){
   console.log('a user connected with id: %s', id);
 
   socket.broadcast.emit('connectedPeer', id);
-  socket.emit('initialConnection', socketIds);
+  socket.emit('initialConnection', {id: id, peers: socketIds});
 
   socket.on('offer', function(event){
     console.log('offer', event);

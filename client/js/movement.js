@@ -26,13 +26,17 @@ tick();
 
 
 function addSprite(sprite){
+  var id = sprite.id;
   var node = document.createElement('div');
   node.className = 'sprite';
-  setCoords(sprite);
+
+  nodeObj[id] = node;
+  spriteObj[id] = sprite;
+  sprites.push(sprite);
+
+  setCoords(id);
   page.appendChild(node);
 
-  sprites.push(sprite);
-  spriteObj[sprite.id] = sprite;
   return sprite;
 }
 
@@ -82,7 +86,6 @@ function setDirection(id){
 function tick(){
   for(var i=0; i<sprites.length; i++){
     var sprite = sprites[i];
-    var node = nodeObj[sprite.id];
 
     sprite.x = (sprite.x + sprite.xdir * sprite.velocity)%maxX;
     sprite.y = (sprite.y + sprite.ydir * sprite.velocity);
@@ -91,14 +94,15 @@ function tick(){
     if(sprite.y < 0) sprite.y = 0;
     if(sprite.y > maxY - sprite.height) sprite.y = maxY - sprite.height;
 
-    setCoords(node, sprite.x, sprite.y);
+    setCoords(sprite.id, sprite.x, sprite.y);
   }
 
   window.requestAnimationFrame(tick);
 }
 
 
-function setCoords(node, x, y){
+function setCoords(id, x, y){
+  var node = nodeObj[id];
   return node.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 }
 
