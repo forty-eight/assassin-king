@@ -82,6 +82,15 @@ function setDirection(id){
   return sprite;
 }
 
+function setMotion(id, data){
+  var sprite = spriteObj[id];
+  sprite.x = data.x;
+  sprite.y = data.y;
+  sprite.xdir = data.xdir;
+  sprite.ydir = data.ydir;
+  return sprite;
+}
+
 
 function tick(){
   for(var i=0; i<sprites.length; i++){
@@ -117,5 +126,5 @@ module.exports = {
   bindDirectionHandler: bindDirectionHandler,
   makeSprite: makeSprite,
   makeLocalSprite: makeLocalSprite,
-  setDirection: setDirection
+  setMotion: setMotion
 };

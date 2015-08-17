@@ -47,6 +47,8 @@ function makeConnections(idData) {
     channel.onmessage = handleMessage;
     connection.onicecandidate = iceCandidateEmitter(id);
     connection.createOffer(localDescriptionFromOfferSetter(id), handleError);
+
+    movement.makeSprite(id);
   });
 
 }
@@ -146,6 +148,7 @@ function dropPeer(id){
 
 function handleMessage(event){
   console.log('Got %s from %s.', event.data, event.target.label);
+  movement.setMotion(event.target.label, JSON.parse(event.data));
 }
 
 
