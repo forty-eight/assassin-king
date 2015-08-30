@@ -143,12 +143,15 @@ function dropPeer(id){
   }
 
   connections[id] = null;
+
+  movement.removeSprite(id);
 }
 
 
 function handleMessage(event){
-  console.log('Got %s from %s.', event.data, event.target.label);
-  movement.setMotion(event.target.label, JSON.parse(event.data));
+  var data = JSON.parse(event.data)
+  console.log('Got %s from %s.', event.data, data.id);
+  movement.setMotion(data.id, data);
 }
 
 

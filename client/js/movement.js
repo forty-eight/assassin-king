@@ -8,10 +8,10 @@ var directionHandler = function(){};
 var activeKeys = {37: 0, 38: 0, 39: 0, 40: 0, 65: 0, 68: 0, 83: 0, 87: 0};
 var movementKeys = {37: 1, 38: 1, 39: 1, 40: 1, 65: 1, 68: 1, 83: 1, 87: 1}
 
-var sprites = [];
-var spriteObj = {};
-var nodeObj = {};
-var localSprite = null;
+window.sprites = [];
+window.spriteObj = {};
+window.nodeObj = {};
+window.localSprite = null;
 
 
 
@@ -41,19 +41,41 @@ function addSprite(sprite){
 }
 
 
+
 function makeSprite(id, x, y){
+  console.log('making sprite with id %s', id);
   return addSprite({
     x: x || Math.random() * maxX- 20,
     y: y || Math.random() * maxY - 20,
     xdir: 0,
     ydir: 0,
     velocity: 5,
+    height: 20,
+    width: 20,
     id: id
   });
 }
 
 
+function removeSprite(id){
+  console.log('removing sprite %s', id);
+  var node = nodeObj[id];
+  page.removeChild(node);
+
+  nodeObj[id] = null;
+  spriteObj[id] = null;
+
+  for(var i=0; i<sprites.length; i++){
+    if(sprites[i][id] === id){
+      sprites.splice(i, 1);
+      break;
+    }
+  }
+}
+
+
 function makeLocalSprite(id, x, y){
+  console.log('making localSprite with id %s', id);
   if(localSprite) return localSprite;
   return localSprite = makeSprite(id, x, y);
 }
@@ -126,5 +148,6 @@ module.exports = {
   bindDirectionHandler: bindDirectionHandler,
   makeSprite: makeSprite,
   makeLocalSprite: makeLocalSprite,
+  removeSprite: removeSprite,
   setMotion: setMotion
 };
