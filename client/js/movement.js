@@ -66,7 +66,7 @@ function removeSprite(id){
   spriteObj[id] = null;
 
   for(var i=0; i<sprites.length; i++){
-    if(sprites[i][id] === id){
+    if(sprites[i].id === id){
       sprites.splice(i, 1);
       break;
     }

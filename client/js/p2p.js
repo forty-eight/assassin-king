@@ -55,6 +55,8 @@ function makeConnections(idData) {
 
 
 function makeRecipricolConnection(id){
+  movement.makeSprite(id);
+
   console.log("connecting reciprically to: ", id);
   var connection = new RTCPeerConnection(pc_config, pc_constraints);
 
