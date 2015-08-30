@@ -35,7 +35,7 @@ function makeConnections(idData) {
   console.log('id', id);
   console.log('peerIds', peerIds);
 
-  movement.makeLocalSprite(id);
+  movement.makeLocalSprite(id, idData.position);
 
   peerIds.forEach(function(id){
     var connection = new RTCPeerConnection(pc_config, pc_constraints);
@@ -47,15 +47,15 @@ function makeConnections(idData) {
     channel.onmessage = handleMessage;
     connection.onicecandidate = iceCandidateEmitter(id);
     connection.createOffer(localDescriptionFromOfferSetter(id), handleError);
-
-    movement.makeSprite(id);
   });
 
 }
 
 
-function makeRecipricolConnection(id){
-  movement.makeSprite(id);
+function makeRecipricolConnection(idData){
+  var id = idData.id;
+  var position = idData.position;
+  movement.makeSprite(id, position);
 
   console.log("connecting reciprically to: ", id);
   var connection = new RTCPeerConnection(pc_config, pc_constraints);
@@ -84,7 +84,7 @@ function localDescriptionFromOfferSetter(id){
 function setRemoteDescriptionFromOffer(event){
   console.log(connections, event);
   var connection = connections[event.id].connection;
-  console.log('setting remote desc from offer', event.description);
+  console.log('setting remote desc from offer', event);
   connection.setRemoteDescription(new RTCSessionDescription(event.description));
   connection.createAnswer(localDescriptionFromAnswerSetter(event.id), handleError);
 }
@@ -94,13 +94,14 @@ function localDescriptionFromAnswerSetter(id){
   return function(desc){
     console.log('setting local desc from answer', desc);
     connections[id].connection.setLocalDescription(desc);
-    socket.emit('answer', {id: id, description: desc});
+    socket.emit('answer', {id: id, description: desc, position: movement.getLocalPosition()});
   }
 }
 
 
 function setRemoteDescriptionFromAnswer(event){
-  console.log('setting remote desc from answer', event.description);
+  console.log('setting remote desc from answer', event);
+  movement.makeSprite(event.id, event.position);
   connections[event.id].connection.setRemoteDescription(new RTCSessionDescription(event.description));
 }
 

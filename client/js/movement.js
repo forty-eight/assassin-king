@@ -42,11 +42,11 @@ function addSprite(sprite){
 
 
 
-function makeSprite(id, x, y){
+function makeSprite(id, coords){
   console.log('making sprite with id %s', id);
   return addSprite({
-    x: x || Math.random() * maxX- 20,
-    y: y || Math.random() * maxY - 20,
+    x: coords[0] || Math.random() * maxX- 20,
+    y: coords[1] || Math.random() * maxY - 20,
     xdir: 0,
     ydir: 0,
     velocity: 5,
@@ -74,10 +74,14 @@ function removeSprite(id){
 }
 
 
-function makeLocalSprite(id, x, y){
+function makeLocalSprite(id, coords){
   console.log('making localSprite with id %s', id);
   if(localSprite) return localSprite;
-  return localSprite = makeSprite(id, x, y);
+  return localSprite = makeSprite(id, coords);
+}
+
+function getLocalPosition(){
+  return [localSprite.x, localSprite.y];
 }
 
 
@@ -149,5 +153,6 @@ module.exports = {
   makeSprite: makeSprite,
   makeLocalSprite: makeLocalSprite,
   removeSprite: removeSprite,
+  getLocalPosition: getLocalPosition,
   setMotion: setMotion
 };

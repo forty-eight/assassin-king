@@ -13,8 +13,10 @@ io.on('connection', function(socket){
   var id = crypto.pseudoRandomBytes(5).toString('hex');
   console.log('a user connected with id: %s', id);
 
-  socket.broadcast.emit('connectedPeer', id);
-  socket.emit('initialConnection', {id: id, peers: socketIds});
+  var position = [Math.random()*800, Math.random()*800];
+
+  socket.broadcast.emit('connectedPeer', {id: id, position: position});
+  socket.emit('initialConnection', {id: id, position: position, peers: socketIds});
 
   socket.on('offer', function(event){
     console.log('offer', event);
@@ -23,7 +25,7 @@ io.on('connection', function(socket){
 
   socket.on('answer', function(event){
     console.log('answer', event);
-    sockets[event.id].emit('answer', {id: id, description: event.description});
+    sockets[event.id].emit('answer', {id: id, description: event.description, position: event.position});
   });
 
   socket.on('iceCandidate', function(event){
