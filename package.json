@@ -1,25 +1,28 @@
 {
   "name": "assassin-king",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "Real time platformer",
+  "main": "server.js",
   "scripts": {
-    "postinstall": "cd node_modules/melonJS && npm i && gr release"
+    "start": "cd server && node server.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/forty-eight/assassin-king.git"
+    "url": "https://github.com/forty-eight/assassin-king.git"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "game",
+    "socket.io",
+    "platformer"
+  ],
+  "author": "Wyatt Pearsall <wyatt.pearsall@cfpb.gov>",
+  "license": "GPL-go-to-hell",
   "bugs": {
     "url": "https://github.com/forty-eight/assassin-king/issues"
   },
-  "scripts": {
-    "release": "grunt release",
-    "test": "grunt test"
-  },
-  "homepage": "https://github.com/forty-eight/assassin-king#readme",
+  "homepage": "https://github.com/forty-eight/assassin-king",
   "dependencies": {
+    "express": "^4.13.1",
+    "socket.io": "^1.3.6"
   }
 }
